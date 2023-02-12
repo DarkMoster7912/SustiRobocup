@@ -1,0 +1,76 @@
+static volatile uint8_t busy;
+
+
+uint8_t sendData[TWI_DATA_LENGTH/*SEND_DATA_SIZE*/];
+uint8_t receivedData[TWI_DATA_LENGTH/*RECEIVE_DATA_SIZE*/];
+
+ISR(TWI_vect){
+	static int byteNumber = 0;					//Count the bytes received from the slave
+	
+	switch(TWSR){
+		case 0x40:								//0x40 SLA+R has been transmitted; ACK has been received
+		byteNumber = 0;							//Reset byte counter
+		TWI_ACK();								//Continue TWI with acknowledgment enabled
+		break;
+		
+		case 0x50:								//0x50 Data byte has been received; ACK has been returned
+		receivedData[byteNumber] = TWDR;		//Read the data register and save the data
+		byteNumber++;							//Increase the counter for the next byte
+		if(byteNumber < TWI_DATA_LENGTH/*RECEIVE_DATA_SIZE*/ - 1){	//If the next byte is NOT the last
+			TWI_ACK();								//Continue with ACK
+			}else{									//Else
+			TWI_NACK();								//Continue and send NACK after the next byte to stop the slave
+		}
+		break;
+		
+		case 0x58:								//0x58 Data byte has been received; NOT ACK has been returned
+		receivedData[byteNumber] = TWDR;		//Read the last byte
+		i2c_stop();								//And stop the TWI connection
+		break;
+	}
+}
+
+
+void twint_flag_set(){
+	while (!(TWCR & (1<<TWINT)));
+}
+
+void i2c_init(){
+	TWBR = ((F_CPU / SCL_FREQ) - 16) / 2;
+	TWSR = 0; // prescaler = 1
+	busy = 0;
+	sei();
+	TWCR = (1<<TWEN) | (1<<TWIE);
+}
+
+void i2c_start(){
+	TWCR = (1<<TWINT) | (1<<TWSTA) | (1<<TWEN);		//0x08
+	twint_flag_set();
+	if ((TWSR & 0x0/*F*/8) != 1){//errore
+	}
+}
+
+void i2c_stop(){
+	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
+	twint_flag_set();
+}
+
+void i2c_send(uint8_t data){
+	TWDR = data;
+}
+
+int i2c_tx(unsigned char data){
+	
+}
+
+unsigned char i2c_rx(char ack){
+	
+}
+
+int slave_address(unsigned char address){
+	TWDR = address;	//SLA+W
+	TWCR = (1<<TWINT) | (1<<TWEN);
+	twint_flag_set();
+	if ((TWSR & 0x18/*F8*/) != 1){//errore
+	}
+}
