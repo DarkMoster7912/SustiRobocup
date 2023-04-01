@@ -1,0 +1,7 @@
+Title: Seriale ATMEGA2560
+
+Command: C:\Program Files (x86)\AVRDUDESS\avrdude.exe
+
+Argument: -F -v -patmega2560 -cwiring -PCOM3 -b115200 -D -Uflash:w:"$(ProjectDir)Debug\$(ItemFileName).hex":i -CC:\DUDEcfg\avrdude.conf
+
+Initial directory: $(TargetDir)
