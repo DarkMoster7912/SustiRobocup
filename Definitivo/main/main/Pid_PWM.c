@@ -11,9 +11,9 @@
 
 #define I_MAX 1023
 #define I_MIN -0
-#define KI 0.457// da settare
-#define KP 4.28//da settare
-#define KD 0.0//da settare
+#define KI 0.130//0.457// da settare
+#define KP 4.16//4.28//da settare
+#define KD 0.0246//da settare
 
 #include <avr/io.h>
 #include <time.h>
@@ -21,6 +21,7 @@
 #include <avr/interrupt.h>
 #include "serial.h"
 #include "Pid_PWM.h"
+#include "Controllo.h"
 
 
 
@@ -61,13 +62,22 @@ volatile int t_4=0, t_old_4=0;
 volatile int deltat_4, deltat_old_4;
 volatile int velocita_4;
 
+
+volatile int seg_enc_0 = 0;
+
+
+int return_seg_enc(){
+	return seg_enc_0;
+}
+
+
 ISR(INT2_vect){//interrupt encoder1
 	t_1 = (int32_t) TCNT5;
 	deltat_1 = (t_1-t_old_1) * KTIMER_256;
 	velocita_1 = 1000000000UL/(K_ENCODER1 * deltat_1); //giri al secondo
 	t_old_1 = t_1;
-	/*seg_enc++;
-	Serial_Send(seg_enc); Serial_Send("\n");*/
+	seg_enc_0++;
+	//Serial_Send(seg_enc); Serial_Send("\n");
 }
 
 ISR(INT3_vect){//interrupt encoder2
@@ -82,7 +92,7 @@ ISR(INT4_vect){//interrupt encoder3
 	deltat_3 = (t_3-t_old_3) * KTIMER_256;
 	velocita_3 = 1000000000UL/(K_ENCODER3 * deltat_3); //giri al secondo
 	t_old_3 = t_3;
-	/*seg_enc++;
+	/*seg_enc_0++;
 	Serial_Send(seg_enc); Serial_Send("\n");*/
 }
 
@@ -91,7 +101,7 @@ ISR(INT5_vect){//interrupt encoder4
 	deltat_4 = (t_4-t_old_4) * KTIMER_256;
 	velocita_4 = 1000000000UL/(K_ENCODER4 * deltat_4); //giri al secondo
 	t_old_4 = t_4;
-	/*seg_enc++;
+	/*seg_enc_0++;
 	Serial_Send(seg_enc); Serial_Send("\n");*/
 }
 
@@ -149,7 +159,7 @@ void PID1(){//pid motore 1
 	if(pid1>1023){
 		pid1 = 1023;
 	}
-	Set_PWM1((int) pid1);
+	Set_PWM4((int) pid1);
 }
 
 void PID2(){//pid motore 2
@@ -195,7 +205,7 @@ void PID3(){//pid motore 3
 	if(pid3>1023){
 		pid3 = 1023;
 	}
-	Set_PWM3((int) pid3);
+	Set_PWM1((int) pid3);
 }
 
 void PID4(){//pid motore 4
@@ -218,7 +228,7 @@ void PID4(){//pid motore 4
 	if(pid4>1023){
 		pid4 = 1023;
 	}
-	Set_PWM4((int) pid4);
+	Set_PWM3((int) pid4);
 }
 
 ISR(TIMER4_COMPA_vect){
@@ -236,7 +246,7 @@ void PWM(){
 	
 	DDRH = 1<<PH4;
 	DDRA = 0xFF;
-	DDRF = 1;
+	DDRF = 3;
 	
 	Init_PWM123();
 	Init_PWM4();
@@ -263,16 +273,25 @@ void PID(){
 }
 
 void avanti(){
-	SET_POINT_VELOCITA = 1000.0;
-	PORTA = (1<<PA1) | (1<<PA2) | (1<<PA5)| (1<<PA6);//Verso motore
-	Set_PWM1(SET_START_PWM);
-	Set_PWM2(SET_START_PWM);
-	Set_PWM3(SET_START_PWM);
-	Set_PWM4(SET_START_PWM);
+	SET_POINT_VELOCITA = 700.0;
+	//PORTA = (1<<PA1) | (1<<PA2) | (1<<PA5)| (1<<PA6);//Verso motore
+	
+	PORTA = (1<<PA1) | (1<<PA2) | (1<<PA4)| (1<<PA6);
+	//PA2-PA3 Motore 4		PA2 AVANTI
+	//PA6-PA7 Motore 3		PA6 AVANTI
+	//PA0-PA1 Motore 2		PA1 AVANTI
+	//PA4-PA5 Motore 1		PA4 AVANTI
+	Set_PWM4(SET_POINT_VELOCITA);
+	//_delay_ms(50);
+	
+	Set_PWM1(SET_POINT_VELOCITA);
+	Set_PWM2(SET_POINT_VELOCITA);
+	Set_PWM3(SET_POINT_VELOCITA);
+	
 }
 
 void indietro(){
-	SET_POINT_VELOCITA = 1000.0;
+	SET_POINT_VELOCITA = 500.0;
 	PORTA = (1<<PA0) | (1<<PA3) | (1<<PA4)| (1<<PA7);//Verso motore
 	Set_PWM1(SET_POINT_VELOCITA);
 	Set_PWM2(SET_POINT_VELOCITA);
@@ -281,7 +300,16 @@ void indietro(){
 }
 
 void destra(){
-	SET_POINT_VELOCITA = 250.0;
+	SET_POINT_VELOCITA = 400.0;
+	PORTA = (1<<PA0) | (1<<PA2) | (1<<PA4) | (1<<PA6);
+	Set_PWM1(SET_POINT_VELOCITA);
+	Set_PWM2(SET_POINT_VELOCITA);
+	Set_PWM3(SET_POINT_VELOCITA);
+	Set_PWM4(SET_POINT_VELOCITA);
+}
+
+void destra_lento(){
+	SET_POINT_VELOCITA = 200.0;
 	PORTA = (1<<PA0) | (1<<PA2) | (1<<PA4) | (1<<PA6);
 	Set_PWM1(SET_POINT_VELOCITA);
 	Set_PWM2(SET_POINT_VELOCITA);
@@ -290,7 +318,16 @@ void destra(){
 }
 
 void sinistra(){
-	SET_POINT_VELOCITA = 250.0;
+	SET_POINT_VELOCITA = 400.0;
+	PORTA = (1<<PA1) | (1<<PA3) | (1<<PA5)| (1<<PA7);
+	Set_PWM1(SET_POINT_VELOCITA);
+	Set_PWM2(SET_POINT_VELOCITA);
+	Set_PWM3(SET_POINT_VELOCITA);
+	Set_PWM4(SET_POINT_VELOCITA);
+}
+
+void sinistra_lento(){
+	SET_POINT_VELOCITA = 150.0;
 	PORTA = (1<<PA1) | (1<<PA3) | (1<<PA5)| (1<<PA7);
 	Set_PWM1(SET_POINT_VELOCITA);
 	Set_PWM2(SET_POINT_VELOCITA);
@@ -302,9 +339,10 @@ void stop_tutto(){
 	SET_POINT_VELOCITA = 0;
 	Set_PWM2(SET_POINT_VELOCITA);
 	Set_PWM3(SET_POINT_VELOCITA);
-	Set_PWM4(SET_POINT_VELOCITA);
-	_delay_ms(50);
+	
+	//_delay_ms(250);
 	Set_PWM1(SET_POINT_VELOCITA);
+	Set_PWM4(SET_POINT_VELOCITA);
 }
 
 
@@ -315,8 +353,7 @@ void Set_Servo(int duty_5){
 }
 
 void cubetto(){
-	Set_Servo(57);			//Non sicuro		PWM--> 30 : 200
-	_delay_ms(200);
-	Set_Servo(30);
-	//da definire
+	Set_Servo(125);			//		PWM--> 30 : 200
+	_delay_ms(1500);
+	Set_Servo(150);
 }

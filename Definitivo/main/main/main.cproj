@@ -128,16 +128,16 @@
     <Compile Include="Controllo.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="Fine_Corsa.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Fine_Corsa.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="I2C.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="I2C.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="laser.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="laser.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">

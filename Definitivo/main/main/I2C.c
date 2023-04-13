@@ -1,5 +1,9 @@
+#define F_CPU 16000000UL
 #include <util/twi.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
+#include "Pid_PWM.h"
+#include "serial.h"
 
 #include "I2C.h"
 
@@ -20,6 +24,7 @@ void I2C_init(uint8_t address)
 	// impostare TWCR per abilitare la corrispondenza degli indirizzi in  TWI, pulire TWINT, abilitare TWI interrupt
 	TWCR = (1<<TWIE) | (1<<TWEA) | (1<<TWINT) | (1<<TWEN);
 	sei();
+	Serial_Init();
 }
 
 void I2C_stop(void)
