@@ -257,10 +257,12 @@ void PID4(){//pid motore 4
 
 void fermo(){
 	SET_POINT_VELOCITA = 0;
+	Set_PWM4(SET_POINT_VELOCITA);
 	Set_PWM1(SET_POINT_VELOCITA);
+	
 	Set_PWM2(SET_POINT_VELOCITA);
 	Set_PWM3(SET_POINT_VELOCITA);
-	Set_PWM4(SET_POINT_VELOCITA);
+	
 	
 }
 
@@ -271,13 +273,13 @@ void sinistra(){
 	Set_PWM2(SET_POINT_VELOCITA);
 	Set_PWM3(SET_POINT_VELOCITA);
 	Set_PWM4(SET_POINT_VELOCITA);
+	
 }
 
 void avanti(){
 	SET_POINT_VELOCITA = 600.0;
 	PORTA = (1<<PA1) | (1<<PA2) | (1<<PA4)| (1<<PA6);//Verso motore
 	Set_PWM4(SET_START_PWM);
-	_delay_ms(200);
 	Set_PWM1(SET_START_PWM);
 	Set_PWM2(SET_START_PWM);
 	Set_PWM3(SET_START_PWM);
