@@ -24,7 +24,7 @@ void PCINT_Init(){
 
 
 
-/*ISR(PCINT2_vect){			//finecorsa
+ISR(PCINT2_vect){			//finecorsa
 	uint8_t changedbits;
 
 	changedbits = PINK ^ n;
@@ -42,7 +42,8 @@ void PCINT_Init(){
 			stop_tutto();
 			_delay_ms(1000);
 			avanti();
-			_delay_ms(300);
+			_delay_ms(100);
+			seg_enc_a_zero(0);
 			stop_tutto();
 			n = 0xFF;
 		}
@@ -51,8 +52,9 @@ void PCINT_Init(){
 				stop_tutto();
 				_delay_ms(1000);
 				indietro();
-				_delay_ms(300);
+				_delay_ms(100);
 				stop_tutto();
+				seg_enc_a_zero(0);
 				n = 0xFF;
 			}
 			else if(s>1){			//10 uF per fitro alti rimbalzo
@@ -68,8 +70,9 @@ void PCINT_Init(){
 			stop_tutto();
 			_delay_ms(1000);
 			indietro();
-			_delay_ms(300);
+			_delay_ms(100);
 			stop_tutto();
+			seg_enc_a_zero(0);
 			n = 0xFF;
 		}
 		else{
@@ -77,8 +80,9 @@ void PCINT_Init(){
 				stop_tutto();
 				_delay_ms(1000);
 				avanti();
-				_delay_ms(300);
+				_delay_ms(100);
 				stop_tutto();
+				seg_enc_a_zero(0);
 				n = 0xFF;
 			}
 			else if(d>1){
@@ -86,85 +90,5 @@ void PCINT_Init(){
 				//n=0xFF;
 			}
 		}	
-	}
-}*/
-
-ISR(PCINT2_vect){
-	uint8_t changedbits;
-
-	changedbits = PINK ^ n;
-	n = PINK;
-	
-	s++;
-	d++;
-	c++;
-	N++;
-	
-	//_delay_ms(100);
-	
-	Serial_Send(N); Serial_Send("\n");
-	
-	if(changedbits & (1 << PK0))
-	{
-		if(c==1){
-			Serial_Send("17\n");
-			_delay_ms(1000);
-			Serial_Send("Ciao\n");
-			_delay_ms(300);
-			Serial_Send("17\n");
-			n = 0xFF;
-		}
-		else{
-			if(s==1){
-				Serial_Send("Stop\n");
-				_delay_ms(1000);
-				Serial_Send("Indietro\n");
-				_delay_ms(300);
-				Serial_Send("Stop\n");
-				n = 0xFF;
-			}
-			else if(s>1){			//10 uF per fitro alti rimbalzo
-				s=0;
-				//n=0xFF;
-			}
-		}
-	}
-
-	if(changedbits & (1 << PK1))
-	{
-		if(c==1){
-			Serial_Send("Stop\n");
-			_delay_ms(1000);
-			Serial_Send("Indietro\n");
-			_delay_ms(300);
-			Serial_Send("Stop\n");
-			n = 0xFF;
-		}
-		else{
-			if(d==1){
-				Serial_Send("17\n");
-				_delay_ms(1000);
-				Serial_Send("Ciao\n");
-				_delay_ms(300);
-				Serial_Send("17\n");
-				n = 0xFF;
-			}
-			else if(d>1){
-				d=0;
-				//n=0xFF;
-			}
-		}
-		
-	}
-	if(changedbits & (1<<PK4)){
-		if(N==1){
-			Serial_Send("Nero fermati\n");Serial_Send(N); Serial_Send("\n");
-			_delay_ms(1000);
-			n = 0xFF;
-		}
-		else if(N>1){
-			N=0;
-			Serial_Send("Niente\n");
-		}
 	}
 }

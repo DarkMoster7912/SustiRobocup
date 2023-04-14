@@ -24,6 +24,7 @@ extern void cubetto();
 extern void Set_Servo( int duty_5);
 
 extern int return_seg_enc(void);
+void seg_enc_a_zero(int c);
 
 
 

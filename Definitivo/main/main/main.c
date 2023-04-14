@@ -24,13 +24,17 @@ volatile int seg_enc=0;
 
 void delay_movimento( int c){
 	if(c==1){			//avanti
-		while ((return_seg_enc() != 1390) && (data!=0x34) );
+		do{
+			seg_enc = return_seg_enc();
+		}while ((seg_enc != 1300) && (data!=0x34));
 		if(data == 0x34){
 			indietro();
 			_delay_ms(15);
 			stop_tutto();
 			_delay_ms(300);
 			interrupt_rasp();
+			seg_enc_a_zero(0);
+			seg_enc=0;
 			Serial_Send("Nero");
 		}
 		else{
@@ -39,6 +43,7 @@ void delay_movimento( int c){
 			stop_tutto();
 			_delay_ms(300);
 			interrupt_rasp();
+			seg_enc_a_zero(0);
 			seg_enc=0;
 		}
 		
@@ -50,6 +55,7 @@ void delay_movimento( int c){
 		stop_tutto();
 		_delay_ms(300);
 		interrupt_rasp();
+		seg_enc_a_zero(0);
 		seg_enc=0;
 	}
 	else if(c==3){		//stop da girata destra
@@ -59,6 +65,7 @@ void delay_movimento( int c){
 		stop_tutto();
 		_delay_ms(300);
 		interrupt_rasp();
+		seg_enc_a_zero(0);
 		seg_enc=0;
 	}
 }
@@ -69,7 +76,7 @@ void controllo_movimento(){
 		//Fermo Da controllo avanti e girata
 		case 0x01:
 			delay_movimento(2);		//da sinistra
-			data_ret = 0x04;
+			seg_enc_a_zero(0);
 			break;
 		case 0x02:
 			avanti();
@@ -84,6 +91,7 @@ void controllo_movimento(){
 			break;
 		case 0x04:
 			stop_tutto();		//fermo
+			seg_enc_a_zero(0);
 			break;
 		
 		
@@ -103,6 +111,7 @@ void controllo_movimento(){
 		
 		default:
 			stop_tutto();
+			seg_enc_a_zero(0);
 			break;
 	}
 }
@@ -152,14 +161,11 @@ int main(void)
 	PCINT_Init();
 	
 	//Led riconoscimento
-	DDRF = 1;
+	DDRF = 3;
 	
 	
     while (1) 
     {
-		
-		Serial_Send(data);
-		Serial_Send("\n");
 		
 		controllo_movimento();
 		

@@ -1,7 +1,7 @@
 #define F_CPU 16000000UL
 #define KTIMER_256 1000000UL/62500UL //durata tick timer con N = 256 --> 64us
-#define K_ENCODER1 990UL //n? impulsi in un giro Motore 1
-#define K_ENCODER2 620UL //n? impulsu Motore 2
+#define K_ENCODER1 620UL //n? impulsi in un giro Motore 1
+#define K_ENCODER2 990UL //n? impulsu Motore 2
 #define K_ENCODER3 990UL //Motore 3
 #define K_ENCODER4 990UL //MOtore 4
 
@@ -11,9 +11,9 @@
 
 #define I_MAX 1023
 #define I_MIN -0
-#define KI 0.130//0.457// da settare
-#define KP 4.16//4.28//da settare
-#define KD 0.0246//da settare
+#define KI 0.120//0.457// da settare
+#define KP 4.07//4.28//da settare
+#define KD 0.0190//da settare
 
 #include <avr/io.h>
 #include <time.h>
@@ -70,13 +70,16 @@ int return_seg_enc(){
 	return seg_enc_0;
 }
 
+void seg_enc_a_zero(int c){
+	seg_enc_0 = c;
+}
 
 ISR(INT2_vect){//interrupt encoder1
 	t_1 = (int32_t) TCNT5;
 	deltat_1 = (t_1-t_old_1) * KTIMER_256;
 	velocita_1 = 1000000000UL/(K_ENCODER1 * deltat_1); //giri al secondo
 	t_old_1 = t_1;
-	seg_enc_0++;
+	//seg_enc_0++;
 	//Serial_Send(seg_enc); Serial_Send("\n");
 }
 
@@ -92,8 +95,8 @@ ISR(INT4_vect){//interrupt encoder3
 	deltat_3 = (t_3-t_old_3) * KTIMER_256;
 	velocita_3 = 1000000000UL/(K_ENCODER3 * deltat_3); //giri al secondo
 	t_old_3 = t_3;
-	/*seg_enc_0++;
-	Serial_Send(seg_enc); Serial_Send("\n");*/
+	seg_enc_0++;
+	/*Serial_Send(seg_enc); Serial_Send("\n");*/
 }
 
 ISR(INT5_vect){//interrupt encoder4
@@ -292,7 +295,7 @@ void avanti(){
 
 void indietro(){
 	SET_POINT_VELOCITA = 500.0;
-	PORTA = (1<<PA0) | (1<<PA3) | (1<<PA4)| (1<<PA7);//Verso motore
+	PORTA = (1<<PA0) | (1<<PA3) | (1<<PA5)| (1<<PA7);//Verso motore
 	Set_PWM1(SET_POINT_VELOCITA);
 	Set_PWM2(SET_POINT_VELOCITA);
 	Set_PWM3(SET_POINT_VELOCITA);
@@ -301,7 +304,7 @@ void indietro(){
 
 void destra(){
 	SET_POINT_VELOCITA = 400.0;
-	PORTA = (1<<PA0) | (1<<PA2) | (1<<PA4) | (1<<PA6);
+	PORTA = (1<<PA4) | (1<<PA6) | (1<<PA3)| (1<<PA0);
 	Set_PWM1(SET_POINT_VELOCITA);
 	Set_PWM2(SET_POINT_VELOCITA);
 	Set_PWM3(SET_POINT_VELOCITA);
@@ -310,7 +313,7 @@ void destra(){
 
 void destra_lento(){
 	SET_POINT_VELOCITA = 200.0;
-	PORTA = (1<<PA0) | (1<<PA2) | (1<<PA4) | (1<<PA6);
+	PORTA = (1<<PA4) | (1<<PA6) | (1<<PA3)| (1<<PA0);
 	Set_PWM1(SET_POINT_VELOCITA);
 	Set_PWM2(SET_POINT_VELOCITA);
 	Set_PWM3(SET_POINT_VELOCITA);
@@ -319,7 +322,7 @@ void destra_lento(){
 
 void sinistra(){
 	SET_POINT_VELOCITA = 400.0;
-	PORTA = (1<<PA1) | (1<<PA3) | (1<<PA5)| (1<<PA7);
+	PORTA = (1<<PA5) | (1<<PA7) | (1<<PA2) | (1<<PA1);
 	Set_PWM1(SET_POINT_VELOCITA);
 	Set_PWM2(SET_POINT_VELOCITA);
 	Set_PWM3(SET_POINT_VELOCITA);
@@ -328,7 +331,7 @@ void sinistra(){
 
 void sinistra_lento(){
 	SET_POINT_VELOCITA = 150.0;
-	PORTA = (1<<PA1) | (1<<PA3) | (1<<PA5)| (1<<PA7);
+	PORTA = (1<<PA5) | (1<<PA7) | (1<<PA2) | (1<<PA1);
 	Set_PWM1(SET_POINT_VELOCITA);
 	Set_PWM2(SET_POINT_VELOCITA);
 	Set_PWM3(SET_POINT_VELOCITA);
