@@ -6,24 +6,30 @@
 #include "I2C.h"
 #include "serial.h"
 
+
+/*
 volatile uint8_t n = 0x0F;	//0xFF
 volatile int s=0;
 volatile int d=0;
 volatile int c=0;
 volatile int N=0;
-//volatile int a=0;
+volatile int a=0;*/
 
 
 void PCINT_Init(){
-	PCICR = 1<<PCIE2;
-	PCIFR = 1<<PCIF2;
+	PCICR = (1<<PCIE2) | (1<<PCIE1);
+	PCIFR = (1<<PCIF2) | (PCIF1);
 	PCMSK2 = (1<<PCINT16) | (1<<PCINT17);
+	PCMSK1 = 1<<PCINT10;
 	sei();
 	DDRK=0;
+	DDRJ = 1<<PJ1;
+	PORTJ = 1<<PJ1;
 }
 
 
 
+/*
 ISR(PCINT2_vect){			//finecorsa
 	uint8_t changedbits;
 
@@ -45,6 +51,7 @@ ISR(PCINT2_vect){			//finecorsa
 			_delay_ms(100);
 			seg_enc_a_zero(0);
 			stop_tutto();
+			data_return(0);
 			n = 0xFF;
 		}
 		else{
@@ -55,6 +62,7 @@ ISR(PCINT2_vect){			//finecorsa
 				_delay_ms(100);
 				stop_tutto();
 				seg_enc_a_zero(0);
+				data_return(0);
 				n = 0xFF;
 			}
 			else if(s>1){			//10 uF per fitro alti rimbalzo
@@ -73,6 +81,7 @@ ISR(PCINT2_vect){			//finecorsa
 			_delay_ms(100);
 			stop_tutto();
 			seg_enc_a_zero(0);
+			data_return(0);
 			n = 0xFF;
 		}
 		else{
@@ -83,6 +92,7 @@ ISR(PCINT2_vect){			//finecorsa
 				_delay_ms(100);
 				stop_tutto();
 				seg_enc_a_zero(0);
+				data_return(0);
 				n = 0xFF;
 			}
 			else if(d>1){
@@ -91,4 +101,4 @@ ISR(PCINT2_vect){			//finecorsa
 			}
 		}	
 	}
-}
+}*/

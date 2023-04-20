@@ -1,9 +1,9 @@
 #define F_CPU 16000000UL
 #define KTIMER_256 1000000UL/62500UL //durata tick timer con N = 256 --> 64us
-#define K_ENCODER1 620UL //n? impulsi in un giro Motore 1
-#define K_ENCODER2 990UL //n? impulsu Motore 2
-#define K_ENCODER3 990UL //Motore 3
-#define K_ENCODER4 990UL //MOtore 4
+#define K_ENCODER1 1000UL //n? impulsi in un giro Motore 1
+#define K_ENCODER2 460UL //n? impulsu Motore 2
+#define K_ENCODER3 630UL //Motore 3
+#define K_ENCODER4 640UL //MOtore 4
 
 //#define SET_POINT_VELOCITA 1500.0
 #define SET_INT_PWM 500
@@ -11,9 +11,9 @@
 
 #define I_MAX 1023
 #define I_MIN -0
-#define KI 0.120//0.457// da settare
-#define KP 4.07//4.28//da settare
-#define KD 0.0190//da settare
+#define KI 0.000957//0.120//0.457// da settare
+#define KP 62.95//4.07//4.28//da settare
+#define KD 0.000000256//da settare
 
 #include <avr/io.h>
 #include <time.h>
@@ -27,6 +27,7 @@
 
 //Motori
 volatile double SET_POINT_VELOCITA = 500.0;
+volatile double SET_POINT_VELOCITA_1 = 500.0;
 
 void Set_Velocita(double k){
 	SET_POINT_VELOCITA = k;
@@ -80,7 +81,7 @@ ISR(INT2_vect){//interrupt encoder1
 	velocita_1 = 1000000000UL/(K_ENCODER1 * deltat_1); //giri al secondo
 	t_old_1 = t_1;
 	//seg_enc_0++;
-	//Serial_Send(seg_enc); Serial_Send("\n");
+	//Serial_Send(seg_enc_0); Serial_Send("\n");
 }
 
 ISR(INT3_vect){//interrupt encoder2
@@ -88,6 +89,8 @@ ISR(INT3_vect){//interrupt encoder2
 	deltat_2 = (t_2-t_old_2) * KTIMER_256;
 	velocita_2 = 1000000000UL/(K_ENCODER2 * deltat_2); //giri al secondo
 	t_old_2 = t_2;
+	seg_enc_0++;
+	Serial_Send(seg_enc_0); Serial_Send("\n");
 }
 
 ISR(INT4_vect){//interrupt encoder3
@@ -95,8 +98,8 @@ ISR(INT4_vect){//interrupt encoder3
 	deltat_3 = (t_3-t_old_3) * KTIMER_256;
 	velocita_3 = 1000000000UL/(K_ENCODER3 * deltat_3); //giri al secondo
 	t_old_3 = t_3;
-	seg_enc_0++;
-	/*Serial_Send(seg_enc); Serial_Send("\n");*/
+	//seg_enc_0++;
+	//Serial_Send(seg_enc_0); Serial_Send("\n");
 }
 
 ISR(INT5_vect){//interrupt encoder4
@@ -104,8 +107,8 @@ ISR(INT5_vect){//interrupt encoder4
 	deltat_4 = (t_4-t_old_4) * KTIMER_256;
 	velocita_4 = 1000000000UL/(K_ENCODER4 * deltat_4); //giri al secondo
 	t_old_4 = t_4;
-	/*seg_enc_0++;
-	Serial_Send(seg_enc); Serial_Send("\n");*/
+	//seg_enc_0++;
+	//Serial_Send(seg_enc_0); Serial_Send("\n");
 }
 
 void Init_PWM123(){//Motore 1/2/3
@@ -250,6 +253,8 @@ void PWM(){
 	DDRH = 1<<PH4;
 	DDRA = 0xFF;
 	DDRF = 3;
+	DDRC = (1<<PC6) | (1<<PC7);
+	PORTC = 0;
 	
 	Init_PWM123();
 	Init_PWM4();
@@ -276,76 +281,80 @@ void PID(){
 }
 
 void avanti(){
-	SET_POINT_VELOCITA = 700.0;
+	SET_POINT_VELOCITA = 800.0;
 	//PORTA = (1<<PA1) | (1<<PA2) | (1<<PA5)| (1<<PA6);//Verso motore
 	
-	PORTA = (1<<PA1) | (1<<PA2) | (1<<PA4)| (1<<PA6);
+	PORTA = (1<<PA1) | (1<<PA2) | (1<<PA4)| (1<<PA7);//Verso motore
 	//PA2-PA3 Motore 4		PA2 AVANTI
 	//PA6-PA7 Motore 3		PA6 AVANTI
 	//PA0-PA1 Motore 2		PA1 AVANTI
 	//PA4-PA5 Motore 1		PA4 AVANTI
-	Set_PWM4(SET_POINT_VELOCITA);
+	//Set_PWM4(SET_POINT_VELOCITA);
 	//_delay_ms(50);
 	
-	Set_PWM1(SET_POINT_VELOCITA);
-	Set_PWM2(SET_POINT_VELOCITA);
-	Set_PWM3(SET_POINT_VELOCITA);
+	//Set_PWM1(SET_POINT_VELOCITA);
+	//Set_PWM2(SET_POINT_VELOCITA);
+	//Set_PWM3(SET_POINT_VELOCITA);
 	
 }
 
 void indietro(){
 	SET_POINT_VELOCITA = 500.0;
-	PORTA = (1<<PA0) | (1<<PA3) | (1<<PA5)| (1<<PA7);//Verso motore
-	Set_PWM1(SET_POINT_VELOCITA);
-	Set_PWM2(SET_POINT_VELOCITA);
-	Set_PWM3(SET_POINT_VELOCITA);
-	Set_PWM4(SET_POINT_VELOCITA);
+	PORTA = (1<<PA0) | (1<<PA3) | (1<<PA5)| (1<<PA6);//Verso motore
+	//Set_PWM1(SET_POINT_VELOCITA);
+	//Set_PWM2(SET_POINT_VELOCITA);
+	//Set_PWM3(SET_POINT_VELOCITA);
+	//Set_PWM4(SET_POINT_VELOCITA);
 }
 
-void destra(){
-	SET_POINT_VELOCITA = 400.0;
-	PORTA = (1<<PA4) | (1<<PA6) | (1<<PA3)| (1<<PA0);
-	Set_PWM1(SET_POINT_VELOCITA);
-	Set_PWM2(SET_POINT_VELOCITA);
-	Set_PWM3(SET_POINT_VELOCITA);
-	Set_PWM4(SET_POINT_VELOCITA);
+void destra( double v){
+	SET_POINT_VELOCITA = v;
+	//SET_POINT_VELOCITA_1 = 300.0;
+	PORTA = (1<<PA4) | (1<<PA7) | (1<<PA3)| (1<<PA0);
+	//Set_PWM1(SET_POINT_VELOCITA);
+	//Set_PWM2(SET_POINT_VELOCITA_1);
+	//Set_PWM3(SET_POINT_VELOCITA);
+	//Set_PWM4(SET_POINT_VELOCITA_1);
 }
 
-void destra_lento(){
-	SET_POINT_VELOCITA = 200.0;
-	PORTA = (1<<PA4) | (1<<PA6) | (1<<PA3)| (1<<PA0);
-	Set_PWM1(SET_POINT_VELOCITA);
-	Set_PWM2(SET_POINT_VELOCITA);
-	Set_PWM3(SET_POINT_VELOCITA);
-	Set_PWM4(SET_POINT_VELOCITA);
+// void destra_lento(){
+// 	SET_POINT_VELOCITA = 500.0;
+// 	//SET_POINT_VELOCITA_1 = 175.0;
+// 	PORTA = (1<<PA4) | (1<<PA7) | (1<<PA3)| (1<<PA0);
+// 	Set_PWM1(SET_POINT_VELOCITA);
+// 	Set_PWM2(SET_POINT_VELOCITA_1);
+// 	Set_PWM3(SET_POINT_VELOCITA);
+// 	Set_PWM4(SET_POINT_VELOCITA_1);
+//}
+
+void sinistra(double v){
+	SET_POINT_VELOCITA = v;
+	//SET_POINT_VELOCITA_1 = 300.0;
+	PORTA = (1<<PA5) | (1<<PA6) | (1<<PA2)| (1<<PA1);
+// 	Set_PWM1(SET_POINT_VELOCITA_1);
+// 	Set_PWM2(SET_POINT_VELOCITA);
+// 	Set_PWM3(SET_POINT_VELOCITA_1);
+// 	Set_PWM4(SET_POINT_VELOCITA);
 }
 
-void sinistra(){
-	SET_POINT_VELOCITA = 400.0;
-	PORTA = (1<<PA5) | (1<<PA7) | (1<<PA2) | (1<<PA1);
-	Set_PWM1(SET_POINT_VELOCITA);
-	Set_PWM2(SET_POINT_VELOCITA);
-	Set_PWM3(SET_POINT_VELOCITA);
-	Set_PWM4(SET_POINT_VELOCITA);
-}
-
-void sinistra_lento(){
-	SET_POINT_VELOCITA = 150.0;
-	PORTA = (1<<PA5) | (1<<PA7) | (1<<PA2) | (1<<PA1);
-	Set_PWM1(SET_POINT_VELOCITA);
-	Set_PWM2(SET_POINT_VELOCITA);
-	Set_PWM3(SET_POINT_VELOCITA);
-	Set_PWM4(SET_POINT_VELOCITA);
-}
+// void sinistra_lento(){
+// 	SET_POINT_VELOCITA = 500.0;
+// 	//SET_POINT_VELOCITA_1 = 175.0;
+// 	PORTA = (1<<PA5) | (1<<PA6) | (1<<PA2)| (1<<PA1);
+// 	//Set_PWM1(SET_POINT_VELOCITA_1);
+// 	//Set_PWM2(SET_POINT_VELOCITA);
+// 	//Set_PWM3(SET_POINT_VELOCITA_1);
+// 	//Set_PWM4(SET_POINT_VELOCITA);
+//}
 
 void stop_tutto(){
 	SET_POINT_VELOCITA = 0;
-	Set_PWM2(SET_POINT_VELOCITA);
-	Set_PWM3(SET_POINT_VELOCITA);
+	//Set_PWM2(SET_POINT_VELOCITA);
+	//Set_PWM3(SET_POINT_VELOCITA);
 	
 	//_delay_ms(250);
-	Set_PWM1(SET_POINT_VELOCITA);
-	Set_PWM4(SET_POINT_VELOCITA);
+	//Set_PWM1(SET_POINT_VELOCITA);
+	//Set_PWM4(SET_POINT_VELOCITA);
 }
 
 
@@ -355,8 +364,24 @@ void Set_Servo(int duty_5){
 	OCR4B = duty_5;
 }
 
+volatile int gir=0;
+volatile int cub = 0;
+ISR(PCINT1_vect){
+	gir++;
+}
+
+
+
 void cubetto(){
-	Set_Servo(125);			//		PWM--> 30 : 200
-	_delay_ms(1500);
-	Set_Servo(150);
+	PORTC = 1<<PC6;
+	while(gir!=3000);
+	PORTC = 0;	//		PWM--> 30 : 200
+	cub++;
+}
+
+void reset_cub(){
+	PORTC = 1<<PC7;
+	while((gir!=(3000*cub)));
+	PORTC = 0;
+	cub=0;
 }
